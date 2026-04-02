@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offboarding Dashboard 2026 — IMC HR Analytics</title>
+
+  <!-- Google Fonts: Outfit (display) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ============================================================
+       CSS VARIABLES
+       ============================================================ */
+    :root {
+      --primary:        #03518A;
+      --primary-dark:   #023d6a;
+      --primary-mid:    #0873C4;
+      --primary-light:  #3D9BE9;
+      --primary-pale:   #E8F2FB;
+      --accent:         #0093DD;
+
+      --bg:             #EFF4F9;
+      --card:           #FFFFFF;
+      --border:         #DDE6EF;
+
+      --text-h:         #0D1B2A;
+      --text-b:         #354A5E;
+      --text-m:         #7B93AA;
+
+      --success:        #12B76A;
+      --warning:        #F59E0B;
+      --danger:         #EF4444;
+      --purple:         #7C3AED;
+
+      --shadow-sm:      0 1px 3px rgba(3,81,138,.06), 0 2px 8px rgba(3,81,138,.04);
+      --shadow:         0 2px 6px rgba(3,81,138,.07), 0 6px 24px rgba(3,81,138,.06);
+      --shadow-hover:   0 4px 12px rgba(3,81,138,.10), 0 16px 40px rgba(3,81,138,.10);
+
+      --radius-lg:      14px;
+      --radius:         10px;
+      --radius-sm:      7px;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text-b);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, .heading { font-family: 'Outfit', sans-serif; }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--primary-mid) 100%);
+      padding: 0 36px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* subtle dot-grid watermark */
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+      background-size: 22px 22px;
+      pointer-events: none;
+    }
+
+    .header-left  { display: flex; align-items: center; gap: 14px; position: relative; }
+    .header-right { position: relative; text-align: right; }
+
+    .header-logo {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 20px; font-weight: 800;
+      color: #fff; letter-spacing: -.3px; line-height: 1.1;
+    }
+
+    .header-sub {
+      font-size: 11px; color: rgba(255,255,255,.65);
+      font-weight: 500; margin-top: 2px; letter-spacing: .3px;
+    }
+
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px; color: rgba(255,255,255,.85);
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+    }
+
+    .header-date { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 5px; }
+
+    /* pulse dot */
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4ADE80;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(74,222,128,.5);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(74,222,128,.5); }
+      70%  { box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+      100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+    }
+
+    /* ============================================================
+       MAIN LAYOUT
+       ============================================================ */
+    .main {
+      padding: 22px 36px 32px;
+      max-width: 1900px;
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       SECTION DIVIDERS
+       ============================================================ */
+    .sec-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--text-m);
+      margin: 20px 0 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sec-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    /* ============================================================
+       FILTERS
+       ============================================================ */
+    .filters-bar {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .fg { display: flex; flex-direction: column; gap: 4px; }
+
+    .fg label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .9px;
+      color: var(--text-m);
+    }
+
+    .fg select {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-h);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      cursor: pointer;
+      outline: none;
+      min-width: 130px;
+      transition: border-color .18s;
+    }
+    .fg select:focus { border-color: var(--primary); }
+
+    .filter-btns {
+      display: flex; gap: 8px; margin-left: auto; align-items: flex-end;
+    }
+
+    .btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px; font-weight: 700;
+      border-radius: var(--radius-sm);
+      padding: 7px 16px;
+      cursor: pointer; border: none;
+      transition: all .2s;
+    }
+    .btn-ghost {
+      background: var(--bg);
+      color: var(--text-m);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-solid {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-solid:hover { background: var(--primary-dark); }
+
+    /* ============================================================
+       KPI CARDS
+       ============================================================ */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+    }
+
+    .kpi {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all .25s ease;
+      cursor: default;
+    }
+    .kpi::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--kpi-accent, var(--primary));
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .kpi:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .kpi-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--primary-pale);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .kpi-lbl {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .9px;
+      color: var(--text-m); margin-bottom: 4px;
+    }
+
+    .kpi-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 30px; font-weight: 800;
+      color: var(--primary); line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .kpi-sub { font-size: 11px; color: var(--text-m); }
+
+    .kpi-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px;
+      margin-top: 5px;
+    }
+    .chip-r { background: #FEF2F2; color: #EF4444; }
+    .chip-g { background: #ECFDF5; color: #059669; }
+    .chip-b { background: var(--primary-pale); color: var(--primary); }
+
+    /* ============================================================
+       CHART GRID ROWS
+       ============================================================ */
+    .row { display: grid; gap: 14px; margin-bottom: 14px; }
+    .r-6-4  { grid-template-columns: 6fr 4fr; }
+    .r-5-5  { grid-template-columns: 1fr 1fr; }
+    .r-4-6  { grid-template-columns: 4fr 6fr; }
+    .r-3    { grid-template-columns: 1fr 1fr 1fr; }
+    .r-4-3-3 { grid-template-columns: 4fr 3fr 3fr; }
+
+    /* ============================================================
+       CARDS
+       ============================================================ */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      padding: 20px 22px;
+      transition: box-shadow .25s;
+    }
+    .card:hover { box-shadow: var(--shadow); }
+
+    .card-head {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--text-h); margin-bottom: 2px;
+    }
+
+    .card-desc { font-size: 11px; color: var(--text-m); }
+
+    /* toggle pills */
+    .pills {
+      display: flex; gap: 1px;
+      background: var(--bg);
+      border-radius: 8px; padding: 3px;
+      border: 1px solid var(--border);
+    }
+    .pill {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 6px;
+      cursor: pointer; border: none;
+      background: transparent; color: var(--text-m);
+      transition: all .15s;
+    }
+    .pill.on {
+      background: var(--card);
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .chart-wrap { position: relative; }
+
+    /* ============================================================
+       PROGRESS BARS
+       ============================================================ */
+    .prog-item { margin-bottom: 10px; }
+    .prog-head {
+      display: flex; justify-content: space-between;
+      font-size: 11.5px; margin-bottom: 4px;
+    }
+    .prog-name { font-weight: 500; color: var(--text-b); }
+    .prog-count { font-weight: 700; color: var(--primary); }
+    .prog-track {
+      height: 5px; background: var(--bg);
+      border-radius: 3px; overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%; border-radius: 3px;
+      background: var(--primary);
+      transition: width .8s cubic-bezier(.4,0,.2,1);
+    }
+    .prog-fill.green  { background: var(--success); }
+    .prog-fill.orange { background: var(--warning); }
+    .prog-fill.red    { background: var(--danger); }
+    .prog-fill.purple { background: var(--purple); }
+
+    /* ============================================================
+       STAT ROWS (notice/clearance panel)
+       ============================================================ */
+    .stat-table { display: flex; flex-direction: column; }
+    .stat-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-left { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-b); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700; font-size: 16px; color: var(--text-h);
+    }
+
+    /* ============================================================
+       GAUGE  (half-donut overlay)
+       ============================================================ */
+    .gauge-wrap {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .gauge-center {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+    .gauge-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 30px; font-weight: 800;
+      color: var(--primary); line-height: 1;
+    }
+    .gauge-lbl { font-size: 10px; color: var(--text-m); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+    .gauge-meta {
+      display: flex; justify-content: center; gap: 24px;
+      margin-top: 10px;
+    }
+    .gauge-stat { text-align: center; }
+    .gauge-stat strong {
+      font-family: 'Outfit', sans-serif;
+      display: block; font-size: 18px; font-weight: 700; color: var(--text-h);
+    }
+    .gauge-stat span { font-size: 10px; color: var(--text-m); }
+
+    /* ============================================================
+       SCORE GRID
+       ============================================================ */
+    .score-box {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .score-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--primary);
+    }
+    .score-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-m); margin-top: 2px; }
+
+    /* ============================================================
+       OVERALL SCORE BANNER
+       ============================================================ */
+    .score-banner {
+      background: linear-gradient(135deg, var(--primary-pale), #fff);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .score-banner-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-m); margin-bottom: 4px; }
+    .score-banner-val {
+      display: flex; align-items: baseline; gap: 6px;
+      font-family: 'Outfit', sans-serif;
+    }
+    .score-big { font-size: 38px; font-weight: 900; color: var(--primary); }
+    .score-denom { font-size: 14px; color: var(--text-m); }
+    .score-bar-track { height: 6px; background: var(--border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .score-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+      transition: width .8s ease;
+    }
+
+    /* ============================================================
+       MINI KPI INSIDE CARD
+       ============================================================ */
+    .mini-kpi-row {
+      display: flex; gap: 10px; margin-bottom: 16px;
+    }
+    .mini-kpi {
+      flex: 1;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .mini-kpi strong {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--primary); display: block;
+    }
+    .mini-kpi span { font-size: 10px; color: var(--text-m); text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .footer {
+      text-align: center;
+      padding: 18px 36px;
+      font-size: 11px; color: var(--text-m);
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    /* ============================================================
+       ANIMATIONS
+       ============================================================ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi { animation: fadeUp .4s ease both; }
+    .kpi:nth-child(1) { animation-delay: .04s; }
+    .kpi:nth-child(2) { animation-delay: .08s; }
+    .kpi:nth-child(3) { animation-delay: .12s; }
+    .kpi:nth-child(4) { animation-delay: .16s; }
+    .kpi:nth-child(5) { animation-delay: .20s; }
+    .kpi:nth-child(6) { animation-delay: .24s; }
+
+    .card { animation: fadeUp .45s ease both; animation-delay: .1s; }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1400px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+      .r-6-4, .r-4-6, .r-5-5 { grid-template-columns: 1fr; }
+      .r-3, .r-4-3-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      .main { padding: 14px 16px 24px; }
+      .header { padding: 0 16px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .r-3, .r-4-3-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <!-- people/exit icon -->
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Offboarding Dashboard 2026</h1>
+      <div class="header-sub">IMC Human Capital Management · Staff Exit Analytics</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-badge">
+      <span class="live-dot"></span>
+      Q1 2026 — Real Data Loaded
+    </div>
+    <div class="header-date">Last updated: April 2026 · Q2–Q4 figures are projections</div>
+  </div>
+</header>
+
+<!-- ============================================================
+     MAIN
+     ============================================================ -->
+<main class="main">
+
+  <!-- ── FILTERS ─────────────────────────────────────────────── -->
+  <div class="sec-label">Filters</div>
+  <div class="filters-bar">
+    <div class="fg">
+      <label>Year</label>
+      <select id="f-year"><option value="all">2026</option></select>
+    </div>
+    <div class="fg">
+      <label>Entity</label>
+      <select id="f-entity">
+        <option value="all">All Entities</option>
+        <option value="IMC">IMC</option>
+        <option value="WELLCARE">WELLCARE</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Division</label>
+      <select id="f-division"><option value="all">All Divisions</option></select>
+    </div>
+    <div class="fg">
+      <label>Department</label>
+      <select id="f-department"><option value="all">All Departments</option></select>
+    </div>
+    <div class="fg">
+      <label>Area / Job Level</label>
+      <select id="f-area">
+        <option value="all">All Areas</option>
+        <option value="Admin">Admin</option>
+        <option value="Nursing">Nursing</option>
+        <option value="Physician">Physician</option>
+        <option value="Allied">Allied</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Grade</label>
+      <select id="f-grade">
+        <option value="all">All Grades</option>
+        <option value="A">A</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+        <option value="G">G</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Tenure Group</label>
+      <select id="f-tenure">
+        <option value="all">All Tenures</option>
+        <option value="under1">&lt; 1 Year</option>
+        <option value="1to3">1–3 Years</option>
+        <option value="3to5">3–5 Years</option>
+        <option value="5plus">5+ Years</option>
+      </select>
+    </div>
+    <div class="filter-btns">
+      <button class="btn btn-ghost" onclick="resetFilters()">↺ Reset</button>
+      <button class="btn btn-solid"  onclick="applyFilters()">Apply Filters</button>
+    </div>
+  </div>
+
+  <!-- ── KPI CARDS ────────────────────────────────────────────── -->
+  <div class="sec-label">Key Performance Indicators</div>
+  <div class="kpi-row">
+
+    <!-- 1. Total Exits -->
+    <div class="kpi" style="--kpi-accent: var(--primary);">
+      <div class="kpi-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="kpi-lbl">Total Staff Exits</div>
+      <div class="kpi-val" id="kpi-exits">—</div>
+      <div class="kpi-sub">YTD 2026 (full year)</div>
+      <div class="kpi-chip chip-b" id="kpi-exits-chip">Q1: 151 actual</div>
+    </div>
+
+    <!-- 2. Turnover Rate -->
+    <div class="kpi" style="--kpi-accent: var(--danger);">
+      <div class="kpi-icon" style="background:#FEF2F2;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.4" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="kpi-lbl">Turnover Rate</div>
+      <div class="kpi-val" style="color:var(--danger);" id="kpi-turnover">—</div>
+      <div class="kpi-sub">Annualized · 3,448 headcount</div>
+      <div class="kpi-chip chip-r">Q1 actual: 17.5%</div>
+    </div>
+
+    <!-- 3. Regretted Loss -->
+    <div class="kpi" style="--kpi-accent: var(--warning);">
+      <div class="kpi-icon" style="background:#FFF7ED;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.4" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div class="kpi-lbl">Regretted Loss</div>
+      <div class="kpi-val" style="color:var(--warning);" id="kpi-regret">—</div>
+      <div class="kpi-sub">Of total exits</div>
+      <div class="kpi-chip" style="background:#FFF7ED;color:var(--warning);" id="kpi-regret-n">9 regretted Q1</div>
+    </div>
+
+    <!-- 4. Avg Notice Period -->
+    <div class="kpi" style="--kpi-accent: #7C3AED;">
+      <div class="kpi-icon" style="background:#F5F3FF;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="kpi-lbl">Avg Notice Period</div>
+      <div class="kpi-val" style="color:#7C3AED;" id="kpi-notice">—</div>
+      <div class="kpi-sub">Days (calendar)</div>
+      <div class="kpi-chip" style="background:#F5F3FF;color:#7C3AED;">Median: 60 days</div>
+    </div>
+
+    <!-- 5. Exit Interview Rate -->
+    <div class="kpi" style="--kpi-accent: var(--success);">
+      <div class="kpi-icon" style="background:#ECFDF5;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.4" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+      </div>
+      <div class="kpi-lbl">Exit Interview Rate</div>
+      <div class="kpi-val" style="color:var(--success);" id="kpi-interview">—</div>
+      <div class="kpi-sub">Completion rate</div>
+      <div class="kpi-chip chip-g" id="kpi-interview-n">24 completed Q1</div>
+    </div>
+
+    <!-- 6. Clearance Progress -->
+    <div class="kpi" style="--kpi-accent: var(--accent);">
+      <div class="kpi-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="kpi-lbl">In Clearance</div>
+      <div class="kpi-val" id="kpi-clearance">77</div>
+      <div class="kpi-sub">Employees pending clearance</div>
+      <div class="kpi-chip chip-b">411 open tasks</div>
+    </div>
+
+  </div><!-- /kpi-row -->
+
+
+  <!-- ── ROW 3: EXIT TREND + VOL vs INVOL ─────────────────────── -->
+  <div class="sec-label">Exit Trend Analysis</div>
+  <div class="row r-6-4">
+
+    <!-- Monthly / Quarterly / YTD Trend -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Exit Trend — 2026</div>
+          <div class="card-desc">Actual (Q1) + Projected (Q2–Q4) · toggle view</div>
+        </div>
+        <div class="pills">
+          <button class="pill on" onclick="setTrend('monthly',this)">Monthly</button>
+          <button class="pill"    onclick="setTrend('quarterly',this)">Quarterly</button>
+          <button class="pill"    onclick="setTrend('ytd',this)">YTD Cumul.</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:260px;">
+        <canvas id="ch-trend"></canvas>
+      </div>
+    </div>
+
+    <!-- Voluntary vs Involuntary -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Exit Type</div>
+          <div class="card-desc">Voluntary vs Involuntary exits</div>
+        </div>
+      </div>
+      <div class="mini-kpi-row">
+        <div class="mini-kpi">
+          <strong id="mk-vol">—</strong>
+          <span>Voluntary</span>
+        </div>
+        <div class="mini-kpi">
+          <strong id="mk-invol">—</strong>
+          <span>Involuntary</span>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:200px;">
+        <canvas id="ch-vol"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /row 3 -->
+
+
+  <!-- ── ROW 4: DIVISION + REASONS ────────────────────────────── -->
+  <div class="sec-label">Exit Breakdown</div>
+  <div class="row r-5-5">
+
+    <!-- Exits by Division -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Exits by Division</div>
+          <div class="card-desc">Departures per organizational division</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="ch-division"></canvas>
+      </div>
+    </div>
+
+    <!-- Reasons for Leaving -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Reasons for Leaving</div>
+          <div class="card-desc">Exit reason distribution · all exits</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="ch-reasons"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /row 4 -->
+
+
+  <!-- ── ROW 5: CLEARANCE + NOTICE ────────────────────────────── -->
+  <div class="sec-label">Notice & Clearance Tracking</div>
+  <div class="row r-5-5">
+
+    <!-- Clearance by Stage -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Clearance by Stage</div>
+          <div class="card-desc">Pending tasks across all departments · 77 employees · 411 tasks</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:290px;">
+        <canvas id="ch-clearance"></canvas>
+      </div>
+    </div>
+
+    <!-- Notice Period + Offboarding Status -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Offboarding Status & Notice Period</div>
+          <div class="card-desc">Employee pipeline overview</div>
+        </div>
+      </div>
+
+      <!-- Status funnel -->
+      <div class="stat-table" style="margin-bottom:18px;">
+        <div class="stat-row">
+          <div class="stat-left"><div class="dot" style="background:var(--primary-mid)"></div>Active Headcount</div>
+          <div class="stat-val">3,448</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left"><div class="dot" style="background:var(--warning)"></div>In Notice Period (estimated)</div>
+          <div class="stat-val" id="ns-notice">~30</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left"><div class="dot" style="background:var(--danger)"></div>Pending Clearance</div>
+          <div class="stat-val">77</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-left"><div class="dot" style="background:var(--success)"></div>Exits Completed YTD</div>
+          <div class="stat-val" id="ns-done">—</div>
+        </div>
+      </div>
+
+      <!-- Notice period distribution -->
+      <div class="card-title" style="font-size:12px;margin-bottom:10px;">Notice Period Distribution</div>
+      <div id="notice-bars"></div>
+
+      <!-- Clearance ownership -->
+      <div class="card-title" style="font-size:12px;margin:14px 0 10px;">Clearance Ownership (411 tasks)</div>
+      <div id="clearance-own"></div>
+    </div>
+
+  </div><!-- /row 5 -->
+
+
+  <!-- ── ROW 6: TENURE ─────────────────────────────────────────── -->
+  <div class="sec-label">Tenure Analysis</div>
+  <div class="row r-5-5">
+
+    <!-- Tenure Donut -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Tenure at Exit</div>
+          <div class="card-desc">Service years at time of departure</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="ch-tenure-pie"></canvas>
+      </div>
+    </div>
+
+    <!-- Tenure Bar + Early Turnover -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Tenure Breakdown</div>
+          <div class="card-desc">Exit count by service period group</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:200px;">
+        <canvas id="ch-tenure-bar"></canvas>
+      </div>
+      <!-- Early Turnover KPI -->
+      <div style="margin-top:18px;padding:14px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <div class="kpi-lbl">Early Turnover Rate</div>
+            <div class="kpi-sub">Exits within first year of hire</div>
+          </div>
+          <div style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--danger);" id="early-rate">—</div>
+        </div>
+        <div class="prog-track" style="height:7px;">
+          <div class="prog-fill red" id="early-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row 6 -->
+
+
+  <!-- ── ROW 7: EXIT INTERVIEW INSIGHTS ────────────────────────── -->
+  <div class="sec-label">Exit Interview Insights</div>
+  <div class="row r-4-3-3">
+
+    <!-- Satisfaction Scores -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Satisfaction Scores by Category</div>
+          <div class="card-desc">Exit interview ratings (scale 1–5) · 24 responses Q1</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="ch-satisfaction"></canvas>
+      </div>
+    </div>
+
+    <!-- Gauge: Completion Rate -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Interview Completion</div>
+          <div class="card-desc">% of exits with completed interview</div>
+        </div>
+      </div>
+      <div class="gauge-wrap" style="height:200px;">
+        <canvas id="ch-gauge" style="max-height:180px;"></canvas>
+        <div class="gauge-center">
+          <div class="gauge-num" id="gauge-pct">—</div>
+          <div class="gauge-lbl">Completion</div>
+        </div>
+      </div>
+      <div class="gauge-meta">
+        <div class="gauge-stat">
+          <strong id="gauge-done">—</strong>
+          <span>Completed</span>
+        </div>
+        <div class="gauge-stat">
+          <strong id="gauge-pend" style="color:var(--text-m);">—</strong>
+          <span>Pending</span>
+        </div>
+      </div>
+      <!-- overall score banner -->
+      <div class="score-banner">
+        <div class="score-banner-lbl">Overall Satisfaction Score</div>
+        <div class="score-banner-val">
+          <span class="score-big" id="overall-score">3.6</span>
+          <span class="score-denom">/ 5.0</span>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" id="overall-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Exit Reasons + Donut -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Top Exit Reasons</div>
+          <div class="card-desc">From exit interview responses</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:180px;">
+        <canvas id="ch-exit-reasons"></canvas>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="card-title" style="font-size:12px;margin-bottom:10px;">Ending Contract Reason Split</div>
+        <div class="chart-wrap" style="height:120px;">
+          <canvas id="ch-ecr"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row 7 -->
+
+</main>
+
+<div class="footer">
+  Offboarding Analytics Dashboard · IMC Human Capital Management · Fiscal Year 2026 ·
+  Q1 data sourced from HR system exports · Q2–Q4 figures are projections based on Q1 trends
+</div>
+
+
+<!-- ============================================================
+     DATA & JAVASCRIPT
+     ============================================================ -->
+<script>
+/* =============================================================
+   HOW TO UPDATE WITH NEW DATA
+   ─────────────────────────────────────────────────────────────
+   This dashboard is driven by five data sections (A–E below).
+   When new monthly data is available:
+     1. Add new row objects to EXIT_RECORDS (Section A).
+        Each row maps 1:1 to a row in Staff_Exit.xlsx.
+     2. Update ACTIVE_HEADCOUNT (Section B) if headcount changed.
+     3. Update WORKFLOW_STATUS (Section C) from Resignations Report.
+     4. Update CLEARANCE_STAGES + CLEARANCE_OWN (Section D)
+        from Clearance_in_Proress__Department.xlsx Description column.
+     5. Exit interview data (Section E) updates automatically if
+        new rows are added (scores recalculated from raw values).
+   All KPIs, charts, and filters recompute automatically.
+   ============================================================= */
+
+/* =============================================================
+   SECTION A — STAFF EXIT RECORDS (source: Staff_Exit.xlsx)
+   ─────────────────────────────────────────────────────────────
+   One object per row. Fields:
+     staffId      — Staff ID (string)
+     entity       — Entity column
+     division     — Division column
+     department   — Department column
+     area         — Area column (Admin/Nursing/Physician/Allied)
+     leavingReason— Leaving Reason code (EOC/NRC/RES/DIS/…)
+     leavingBy    — "Employee" (Voluntary) | "IMC" (Involuntary)
+     regret       — "Yes" | "No"  (Regret column)
+     servicePeriod— Service Period Category column
+     noticePeriod — Notice Period From Employee (days, number)
+     earlyTurnover— true if (LWD - DOH) < 365 days
+     month        — numeric month of LWD (1=Jan … 12=Dec)
+     grade        — Grade from Master_Data_ (joined on Staff ID)
+   ============================================================= */
+const EXIT_RECORDS = [{"staffId":"8616","entity":"IMC","division":"Executive Office","department":"CCO Office","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"B1"},{"staffId":"8789","entity":"IMC","division":"Executive Office","department":"Academic Affairs and Research Center","area":"Admin","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":15.0,"earlyTurnover":false,"month":2,"grade":"B1"},{"staffId":"1926","entity":"IMC","division":"Executive Office","department":"Academic Affairs and Research Center","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"8547","entity":"IMC","division":"Executive Office","department":"Academic Affairs and Research Center","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"1902","entity":"IMC","division":"Executive Office","department":"Medical Ethics Center","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"B1"},{"staffId":"11163","entity":"IMC","division":"Executive Office","department":"Home Health Care","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"6220","entity":"IMC","division":"Executive Office","department":"Home Health Care","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"D"},{"staffId":"8807","entity":"IMC","division":"Project Management Office","department":"Project Management Office Administration","area":"Admin","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":true,"month":2,"grade":"B1"},{"staffId":"5270","entity":"IMC","division":"Internal Audit","department":"","area":"Admin","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"B1"},{"staffId":"11274","entity":"IMC","division":"COO Office","department":"COO Office Administration","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"B1"},{"staffId":"8013","entity":"IMC","division":"COO Office","department":"COO Office Administration","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"C1"},{"staffId":"30094","entity":"IMC","division":"COO Office","department":"Nutrition & Food Experience","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"G"},{"staffId":"30119","entity":"IMC","division":"COO Office","department":"Nutrition & Food Experience","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":2,"grade":"F"},{"staffId":"10684","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"11290","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"901","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"C1"},{"staffId":"7371","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C2"},{"staffId":"8894","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"9948","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"9788","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"C1"},{"staffId":"6307","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"Yes","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"10843","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":3,"grade":"C1"},{"staffId":"18959","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":3,"grade":"E"},{"staffId":"4851","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"D"},{"staffId":"4590","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10698","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"2895","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"6687","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10505","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"Termination","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"8966","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10358","entity":"IMC","division":"COO Office","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"8596","entity":"IMC","division":"COO Office","department":"Medical Imaging","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":15.0,"earlyTurnover":false,"month":1,"grade":"B1"},{"staffId":"18805","entity":"IMC","division":"COO Office","department":"Medical Imaging","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"9792","entity":"IMC","division":"COO Office","department":"Medical Imaging","area":"Allied","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"9918","entity":"IMC","division":"COO Office","department":"Medical Imaging","area":"Allied","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"C2"},{"staffId":"10619","entity":"IMC","division":"COO Office","department":"Elite Customer Experience and External Relationship Development","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"8244","entity":"IMC","division":"COO Office","department":"Patient Experience","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"11284","entity":"IMC","division":"COO Office","department":"Transformation Management","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"10753","entity":"IMC","division":"COO Office","department":"Transformation Management","area":"Admin","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":true,"month":2,"grade":"C1"},{"staffId":"4623","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"C2"},{"staffId":"5357","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"7743","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"G"},{"staffId":"7908","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"6693","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"3387","entity":"IMC","division":"COO Office","department":"Estates & Facilities Management","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"G"},{"staffId":"3791","entity":"IMC","division":"COO Office","department":"Supply Chain","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"F"},{"staffId":"4250","entity":"IMC","division":"COO Office","department":"Inpatient Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"C1"},{"staffId":"459","entity":"IMC","division":"Chief Medical Office","department":"Quality Improvement & Patient Safety (QIPS)","area":"Admin","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":">20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"C1"},{"staffId":"6747","entity":"IMC","division":"Chief Medical Office","department":"Anesthesiology and Pain Management","area":"Nursing","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"5707","entity":"IMC","division":"Chief Medical Office","department":"Critical Care","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":false,"month":1,"grade":"B1"},{"staffId":"10436","entity":"IMC","division":"Chief Medical Office","department":"Emergency Medicine","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"1243","entity":"IMC","division":"Chief Medical Office","department":"Children's Health Center","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":15.0,"earlyTurnover":false,"month":3,"grade":"B1"},{"staffId":"7067","entity":"IMC","division":"Chief Medical Office","department":"Children's Health Center","area":"Physician","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"B1"},{"staffId":"7401","entity":"IMC","division":"Chief Medical Office","department":"Children's Health Center","area":"Physician","leavingReason":"Agreement","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"C1"},{"staffId":"10052","entity":"IMC","division":"Chief Medical Office","department":"Internal Medicine","area":"Physician","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"10616","entity":"IMC","division":"Chief Medical Office","department":"Internal Medicine","area":"Physician","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"7400","entity":"IMC","division":"Chief Medical Office","department":"Internal Medicine","area":"Allied","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10529","entity":"IMC","division":"Chief Medical Office","department":"Internal Medicine","area":"Physician","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":30.0,"earlyTurnover":false,"month":2,"grade":"Unknown"},{"staffId":"2842","entity":"IMC","division":"Chief Medical Office","department":"Internal Medicine","area":"Allied","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"14499","entity":"IMC","division":"Chief Medical Office","department":"Oncology Center","area":"Physician","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"C1"},{"staffId":"7755","entity":"IMC","division":"Chief Medical Office","department":"Oncology Center","area":"Physician","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"Unknown"},{"staffId":"10249","entity":"IMC","division":"Chief Medical Office","department":"Eye Center","area":"Physician","leavingReason":"DIS","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":false,"month":1,"grade":"C1"},{"staffId":"9643","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":30.0,"earlyTurnover":false,"month":1,"grade":"B1"},{"staffId":"9521","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"DIS","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":false,"month":2,"grade":"B1"},{"staffId":"9862","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"NRC","leavingBy":"IMC","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"5220","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"7764","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"C1"},{"staffId":"9702","entity":"IMC","division":"Chief Medical Office","department":"Surgery","area":"Physician","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"B1"},{"staffId":"9822","entity":"IMC","division":"Chief Medical Office","department":"Women's Health Center","area":"Physician","leavingReason":"DIS","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":false,"month":2,"grade":"B1"},{"staffId":"10608","entity":"IMC","division":"Chief Medical Office","department":"Women's Health Center","area":"Physician","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"C1"},{"staffId":"8756","entity":"IMC","division":"Nursing Services","department":"CNO Office","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"457","entity":"IMC","division":"Nursing Services","department":"Nursing Clinical Support Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":">20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"6369","entity":"IMC","division":"Nursing Services","department":"Nursing Clinical Support Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"979","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"4020","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"30136","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"F"},{"staffId":"9128","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"D"},{"staffId":"4278","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"D"},{"staffId":"5887","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"8594","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"5349","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"C2"},{"staffId":"358","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":">20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"D"},{"staffId":"9843","entity":"IMC","division":"Nursing Services","department":"Nursing Medical Services","area":"Admin","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"F"},{"staffId":"9900","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"D"},{"staffId":"1434","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"11086","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"7810","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"8464","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"9130","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"11143","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"8298","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"2627","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"9242","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"5244","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"F"},{"staffId":"5374","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"2161","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"407","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":">20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"1486","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"2146","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"6555","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"2330","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"2089","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"2275","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"2265","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"3116","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"2493","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"7805","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"8538","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"657","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"3152","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"Yes","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"129","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"8489","entity":"IMC","division":"Nursing Services","department":"Nursing Surgical Services","area":"Admin","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"F"},{"staffId":"8487","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"1214","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"15-20 Years","noticePeriod":90.0,"earlyTurnover":false,"month":1,"grade":"D"},{"staffId":"7154","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"D"},{"staffId":"8490","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10574","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"7341","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"9936","entity":"IMC","division":"Nursing Services","department":"Nursing Critical Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"7973","entity":"IMC","division":"CIO Office","department":"Technology and Operations","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"D"},{"staffId":"6382","entity":"IMC","division":"Financial Services","department":"Budgeting & Treasury","area":"Admin","leavingReason":"Termination","leavingBy":"IMC","regret":"No","servicePeriod":"8-10 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"4885","entity":"IMC","division":"Financial Services","department":"Budgeting & Treasury","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"122","entity":"IMC","division":"Financial Services","department":"Cost Control","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"C1"},{"staffId":"7597","entity":"IMC","division":"Financial Services","department":"Inpatient & Billing Admission","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"3679","entity":"IMC","division":"Financial Services","department":"Revenue Cycle","area":"Admin","leavingReason":"Agreement","leavingBy":"IMC","regret":"No","servicePeriod":"10-15 Years","noticePeriod":30.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"7500","entity":"IMC","division":"Human Capital Management","department":"HCM Administration","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"B2"},{"staffId":"10126","entity":"IMC","division":"Human Capital Management","department":"HCM Administration","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"B2"},{"staffId":"10623","entity":"IMC","division":"Human Capital Management","department":"OD","area":"Admin","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"B2"},{"staffId":"9426","entity":"WELLCARE","division":"KAUST","department":"Administration KAUST","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"E"},{"staffId":"3465","entity":"WELLCARE","division":"KAUST","department":"Medical Services","area":"Physician","leavingReason":"DIS","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"9385","entity":"WELLCARE","division":"KAUST","department":"Medical Services","area":"Physician","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":3,"grade":"B1"},{"staffId":"7628","entity":"WELLCARE","division":"KAUST","department":"Medical Services","area":"Allied","leavingReason":"EOC","leavingBy":"IMC","regret":"Yes","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"11251","entity":"WELLCARE","division":"KAUST","department":"Admin Services","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"30085","entity":"WELLCARE","division":"KAUST","department":"Supply Chain","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"10085","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"2333","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"5663","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"C2"},{"staffId":"9156","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"NRC","leavingBy":"IMC","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10557","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"RES","leavingBy":"Employee","regret":"Yes","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"8684","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Financial Services","area":"Admin","leavingReason":"EOC","leavingBy":"Employee","regret":"No","servicePeriod":"3-5 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"18723","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":true,"month":1,"grade":"B1"},{"staffId":"18886","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Physician","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":3,"grade":"B1"},{"staffId":"10607","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Allied","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"5017","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Nursing Services","area":"Nursing","leavingReason":"NRC","leavingBy":"Employee","regret":"No","servicePeriod":"5-8 Years","noticePeriod":60.0,"earlyTurnover":false,"month":1,"grade":"E"},{"staffId":"10275","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Physician","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"C1"},{"staffId":"11173","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Physician","leavingReason":"DIS","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":true,"month":1,"grade":"B1"},{"staffId":"10973","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Medical Services","area":"Physician","leavingReason":"DIS","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":15.0,"earlyTurnover":true,"month":2,"grade":"B1"},{"staffId":"10824","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Nursing Services","area":"Nursing","leavingReason":"Termination","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":1,"grade":"E"},{"staffId":"10527","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":false,"month":2,"grade":"E"},{"staffId":"10222","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Operation & Support Services","area":"Allied","leavingReason":"RES","leavingBy":"Employee","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"},{"staffId":"10581","entity":"WELLCARE","division":"Ambulatory Care Network","department":"Admin Services","area":"Admin","leavingReason":"EOC","leavingBy":"IMC","regret":"No","servicePeriod":"0-3 Years","noticePeriod":60.0,"earlyTurnover":true,"month":2,"grade":"E"}];
+
+/* =============================================================
+   SECTION B — ACTIVE HEADCOUNT (source: Master_Data_.xlsx)
+   ─────────────────────────────────────────────────────────────
+   Count of employees where Active/Not Active = "Active"
+   Update when new Master Data is provided.
+   ============================================================= */
+const ACTIVE_HEADCOUNT = 3448;
+
+/* =============================================================
+   SECTION C — OFFBOARDING WORKFLOW STATUS
+   (source: Resignations_Report.xlsx, Submitting date Jan-Mar 2026)
+   ─────────────────────────────────────────────────────────────
+   Used in the Offboarding Status funnel display.
+   ============================================================= */
+const WORKFLOW_STATUS = {"Completed":131,"Rejected":13,"Pending approval":12,"Not submitted":6};
+
+/* =============================================================
+   SECTION D — CLEARANCE STAGES (source: Clearance_in_Proress__Department.xlsx)
+   ─────────────────────────────────────────────────────────────
+   IMPORTANT: Counts are from the Description column (not Task).
+   CLEARANCE_EMP_COUNT = row count of Clearance_in_Progress__Employee.xlsx
+   ============================================================= */
+const CLEARANCE_EMP_COUNT = 77;   // Count rows in Clearance_in_Progress__Employee.xlsx
+const CLEARANCE_STAGES = [        // Description field → count
+  { label: 'Estate & Facilities Mgmt',  count: 81 },
+  { label: 'Handover / Endorsement',    count: 75 },
+  { label: 'Finance',                   count: 72 },
+  { label: 'Government Relations',      count: 51 },
+  { label: 'HCM – Employee Experience', count: 34 },
+  { label: 'Final IT Clearance',        count: 22 },
+  { label: 'Information Technology',    count: 20 },
+  { label: 'Employee Experience',       count: 13 },
+  { label: 'HCM – Payroll',            count: 11 },
+  { label: 'Academic Affairs',          count:  8 },
+  { label: 'Medical Records',           count:  8 },
+  { label: 'Mail Service',              count:  9 },
+  { label: 'Pharmacy',                  count:  5 },
+  { label: 'HCM – Gov. Relations',      count:  2 },
+];
+// Ownership rollup for progress bars
+const CLEARANCE_OWN = [
+  { label: 'Estate & Facilities Mgmt',  count: 81 },
+  { label: 'Finance',                   count: 72 },
+  { label: 'Handover / Line Manager',   count: 75 },
+  { label: 'Government Relations',      count: 51 },
+  { label: 'HCM – Employee Exp.',       count: 47 },  // HCM-Employee Exp + Employee Exp
+  { label: 'IT (All)',                  count: 42 },  // Final IT + IT
+  { label: 'Mail / Pharmacy / Other',   count: 22 },
+  { label: 'Academic & Medical',        count: 16 },
+  { label: 'HCM – Payroll',            count: 11 },
+];
+
+/* =============================================================
+   SECTION E — EXIT INTERVIEW (source: Exit_Interview_Data.xlsx)
+   ─────────────────────────────────────────────────────────────
+   All satisfaction scores and interview counts are from the
+   24 completed exit interviews in Q1 2026.
+   ============================================================= */
+const EXIT_INTERVIEW_COUNT = 24;   // Rows in Exit_Interview_Data.xlsx
+
+// Satisfaction category averages (scale 1–5)
+const SATISFACTION = [
+  { label: 'Work Environment',      score: 4.00 },
+  { label: 'Policies & Fairness',   score: 3.54 },
+  { label: 'Communication',         score: 3.58 },
+  { label: 'Feeling Valued',        score: 3.62 },
+  { label: 'Would Recommend',       score: 3.50 },
+  { label: 'Manager Relationship',  score: 3.62 },
+  { label: 'Manager Transparency',  score: 4.08 },
+  { label: 'Resources & Training',  score: 3.62 },
+  { label: 'Career Growth',         score: 3.04 },
+  { label: 'Job Clarity',           score: 4.00 },
+  { label: 'Salary',                score: 2.83 },
+  { label: 'Benefits Package',      score: 3.58 },
+];
+
+// Monthly interview counts (from Last Working Date month)
+const MONTHLY_INTERVIEWS = {1: 8, 2: 12, 3: 4};
+
+// Average overall satisfaction per month
+const MONTHLY_SAT = {1: 3.12, 2: 3.68, 3: 3.42};
+
+// Ending Contract Reason from Exit Interview (Ending Contract Reason column)
+const ECR_DATA = [
+  { label: 'Non-renewal contract',      count: 11 },
+  { label: 'Better Job Opportunity',    count:  4 },
+  { label: 'Personal Reasons',          count:  4 },
+  { label: 'Mutual Agreement Termination', count: 3 },
+  { label: 'Other reasons',             count:  1 },
+  { label: 'Probation Period',          count:  1 },
+];
+
+// Top reasons from exit interview free-text
+const INTERVIEW_REASONS = [
+  { label: 'Workload & Stress',              count: 8 },
+  { label: 'Personal / Family or Health',    count: 8 },
+  { label: 'Better Pay & Benefits',          count: 7 },
+  { label: 'Work Environment / Location',    count: 3 },
+  { label: 'Management Issues',              count: 2 },
+  { label: 'Job Clarity Issues',             count: 2 },
+];
+
+/* =============================================================
+   COMPUTED CONSTANTS (derived from data above — do not edit)
+   ============================================================= */
+const REASON_LBL = {
+  EOC: 'End of Contract', NRC: 'Non-Renewal',
+  RES: 'Resignation',     DIS: 'Dismissal',
+  Termination: 'Termination', Agreement: 'Mutual Agreement'
+};
+
+// Voluntary exits count (leavingBy === 'Employee') — denominator for interview rate
+const VOLUNTARY_EXITS_TOTAL = EXIT_RECORDS.filter(r => r.leavingBy === 'Employee').length; // 63
+
+/* =============================================================
+   COLOUR PALETTE
+   ============================================================= */
+const P = {
+  primary: '#03518A', mid: '#0873C4', light: '#3D9BE9',
+  pale: '#7EC8F2', paler: '#B8E0FA',
+  gray: '#94A3B8', success: '#12B76A', warning: '#F59E0B',
+  danger: '#EF4444', purple: '#7C3AED', orange: '#F97316',
+};
+const PALETTE = [P.primary, P.mid, P.light, P.pale, P.paler, '#064E8C', '#1A7FC1', '#56A8DE', P.gray, P.warning];
+
+/* =============================================================
+   MASTER VIEW (filtered slice of EXIT_RECORDS)
+   ============================================================= */
+let VIEW = [...EXIT_RECORDS];
+let trendMode = 'monthly';
+
+/* =============================================================
+   FILTER LOGIC
+   ─────────────────────────────────────────────────────────────
+   All filters operate on EXIT_RECORDS (Staff Exit master table).
+   Tenure filter uses servicePeriod (Service Period Category column).
+   Grade filter uses grade (joined from Master Data on Staff ID).
+   ============================================================= */
+function populateDropdowns() {
+  // Populate Division and Department from EXIT_RECORDS only
+  const divs  = [...new Set(EXIT_RECORDS.map(d => d.division).filter(Boolean))].sort();
+  const depts = [...new Set(EXIT_RECORDS.map(d => d.department).filter(Boolean))].sort();
+  const divSel = document.getElementById('f-division');
+  const dptSel = document.getElementById('f-department');
+  divs.forEach(v  => { const o = document.createElement('option'); o.value = v; o.textContent = v; divSel.appendChild(o); });
+  depts.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; dptSel.appendChild(o); });
+}
+
+// Maps tenure filter values to servicePeriod categories in Staff Exit
+const TENURE_MAP = {
+  under1: ['0-3 Years'],            // earlyTurnover = true (< 1 yr) is subset; use servicePeriod for display
+  '1to3': ['0-3 Years'],
+  '3to5': ['3-5 Years'],
+  '5plus': ['5-8 Years','8-10 Years','10-15 Years','15-20 Years','>20 Years'],
+};
+// For tenure filter: under1 uses earlyTurnover flag; others use servicePeriod
+function tenureMatch(r, tenureFilter) {
+  if (tenureFilter === 'all') return true;
+  if (tenureFilter === 'under1') return r.earlyTurnover === true;
+  if (tenureFilter === '1to3')   return r.servicePeriod === '0-3 Years' && !r.earlyTurnover;
+  if (tenureFilter === '3to5')   return r.servicePeriod === '3-5 Years';
+  if (tenureFilter === '5plus')  return ['5-8 Years','8-10 Years','10-15 Years','15-20 Years','>20 Years'].includes(r.servicePeriod);
+  return true;
+}
+
+function applyFilters() {
+  const entity = document.getElementById('f-entity').value;
+  const div    = document.getElementById('f-division').value;
+  const dept   = document.getElementById('f-department').value;
+  const area   = document.getElementById('f-area').value;
+  const grade  = document.getElementById('f-grade').value;
+  const tenure = document.getElementById('f-tenure').value;
+
+  VIEW = EXIT_RECORDS.filter(d => {
+    if (entity !== 'all' && d.entity    !== entity) return false;
+    if (div    !== 'all' && d.division  !== div)    return false;
+    if (dept   !== 'all' && d.department !== dept)  return false;
+    if (area   !== 'all' && d.area      !== area)   return false;
+    if (grade  !== 'all' && d.grade     !== grade)  return false;
+    if (!tenureMatch(d, tenure))                    return false;
+    return true;
+  });
+
+  updateAll();
+}
+
+function resetFilters() {
+  ['f-entity','f-division','f-department','f-area','f-grade','f-tenure']
+    .forEach(id => document.getElementById(id).value = 'all');
+  VIEW = [...EXIT_RECORDS];
+  updateAll();
+}
+
+document.querySelectorAll('.filters-bar select').forEach(s => s.addEventListener('change', applyFilters));
+
+/* =============================================================
+   KPI CALCULATIONS
+   ─────────────────────────────────────────────────────────────
+   All metrics computed directly from EXIT_RECORDS per the rules:
+   • Total Exits           = count rows in Staff Exit (filtered)
+   • Regretted Loss %      = Regret=="Yes" / total * 100
+   • Avg Notice Period     = mean(Notice Period From Employee)
+   • Exit Interview Rate   = EXIT_INTERVIEW_COUNT / voluntary exits
+                             (voluntary = leavingBy=="Employee")
+   • Active Headcount      = ACTIVE_HEADCOUNT from Master Data
+   • Turnover Rate         = total exits / ACTIVE_HEADCOUNT (annualized)
+   • Early Turnover Rate   = earlyTurnover==true / total * 100
+   • Clearance employees   = CLEARANCE_EMP_COUNT (Clearance Employee file)
+   ============================================================= */
+function updateKPIs(d) {
+  const n         = d.length;                                      // Total Staff Exits (row count)
+  const regretN   = d.filter(x => x.regret === 'Yes').length;     // Regret column
+  const volN      = d.filter(x => x.leavingBy === 'Employee').length; // Voluntary (Leaving By = Employee)
+  const involN    = d.filter(x => x.leavingBy === 'IMC').length;      // Involuntary (Leaving By = IMC)
+  const earlyN    = d.filter(x => x.earlyTurnover === true).length;   // DOH to LWD < 1 year
+
+  // Avg Notice Period from Employee column
+  const avgNP = n > 0
+    ? (d.reduce((s, x) => s + (x.noticePeriod || 0), 0) / n).toFixed(0)
+    : 0;
+
+  // Turnover Rate = exits / active headcount, annualized (data covers Jan–Mar = 3 months)
+  const turnoverPct = (n / ACTIVE_HEADCOUNT * (12 / 3) * 100).toFixed(1);
+
+  // Regretted Loss %
+  const regretPct = n > 0 ? (regretN / n * 100).toFixed(1) : '0.0';
+
+  // Interview Completion Rate = EXIT_INTERVIEW_COUNT / voluntary exits (leavingBy=Employee)
+  // Note: exit interviews apply only to voluntary exits per business rule
+  const volDenominator = volN > 0 ? volN : 1;
+  const interviewRate  = (EXIT_INTERVIEW_COUNT / volDenominator * 100).toFixed(1);
+
+  // Early turnover %
+  const earlyPct = n > 0 ? (earlyN / n * 100).toFixed(1) : '0.0';
+
+  // Set KPI card values
+  set('kpi-exits',     n.toLocaleString());
+  set('kpi-turnover',  turnoverPct + '%');
+  set('kpi-regret',    regretPct + '%');
+  set('kpi-notice',    avgNP + 'd');
+  set('kpi-interview', interviewRate + '%');
+  set('kpi-clearance', CLEARANCE_EMP_COUNT);
+
+  // Sub-labels
+  set('kpi-regret-n',    regretN + ' regretted of ' + n);
+  set('kpi-interview-n', EXIT_INTERVIEW_COUNT + ' of ' + volN + ' voluntary exits');
+
+  // Offboarding Status funnel
+  set('ns-done',   n.toLocaleString());
+  set('ns-notice', '~' + Math.round(n * 0.20));   // estimated still in notice period
+
+  // Early turnover bar
+  set('early-rate', earlyPct + '%');
+  const eb = document.getElementById('early-bar');
+  if (eb) eb.style.width = Math.min(parseFloat(earlyPct), 100) + '%';
+
+  // Gauge — interview completion (vs voluntary exits, fixed at full dataset rate)
+  const gaugeVal = parseFloat(interviewRate);
+  set('gauge-pct',  interviewRate + '%');
+  set('gauge-done', EXIT_INTERVIEW_COUNT);
+  set('gauge-pend', volN - EXIT_INTERVIEW_COUNT);
+  updateGauge(gaugeVal);
+
+  // Overall satisfaction score (fixed — from Exit Interview Data, not affected by exit filter)
+  const ovr = (SATISFACTION.reduce((s, x) => s + x.score, 0) / SATISFACTION.length).toFixed(1);
+  set('overall-score', ovr);
+  const ob = document.getElementById('overall-bar');
+  if (ob) ob.style.width = (parseFloat(ovr) / 5 * 100) + '%';
+
+  // Mini KPIs for Vol/Invol
+  set('mk-vol',   volN);
+  set('mk-invol', involN);
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+/* =============================================================
+   CHART OBJECTS
+   ============================================================= */
+const CH = {};
+
+function initCharts() {
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size   = 11;
+  Chart.defaults.color       = '#7B93AA';
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.boxPadding = 4;
+  Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(13,27,42,0.88)';
+  Chart.defaults.plugins.tooltip.titleFont = { family: "'Outfit', sans-serif", size: 12, weight: '700' };
+  Chart.defaults.plugins.tooltip.bodyFont  = { family: "'Inter', sans-serif", size: 11 };
+
+  // ── Exit Trend (Monthly/Quarterly/YTD cumulative)
+  CH.trend = new Chart(document.getElementById('ch-trend'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 }, stepSize: 10 } }
+      }
+    }
+  });
+
+  // ── Voluntary vs Involuntary (donut)
+  // Exit Type: leavingBy=Employee → Voluntary, leavingBy=IMC → Involuntary
+  CH.vol = new Chart(document.getElementById('ch-vol'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Voluntary (Employee)', 'Involuntary (IMC)'],
+      datasets: [{ data: [0, 0], backgroundColor: [P.primary, P.light], borderWidth: 0, hoverOffset: 8 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.label}: ${ctx.raw} (${tot > 0 ? (ctx.raw/tot*100).toFixed(1) : 0}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Exit by Division (horizontal bar) — Division column from Staff Exit
+  CH.div = new Chart(document.getElementById('ch-division'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} exits` } }
+      },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Reason for Leaving (donut) — Leaving Reason column from Staff Exit
+  CH.reasons = new Chart(document.getElementById('ch-reasons'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Clearance by Stage (horizontal bar)
+  // Source: Description column of Clearance_in_Proress__Department.xlsx (NOT the Task column)
+  const clTop = [...CLEARANCE_STAGES].sort((a, b) => b.count - a.count).slice(0, 12);
+  CH.clearance = new Chart(document.getElementById('ch-clearance'), {
+    type: 'bar',
+    data: {
+      labels: clTop.map(s => s.label),
+      datasets: [{
+        label: 'Pending Tasks',
+        data:  clTop.map(s => s.count),
+        backgroundColor: clTop.map((_, i) => i === 0 ? P.primary : i < 3 ? P.mid : i < 6 ? P.light : P.pale),
+        borderRadius: 4, barThickness: 16
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} pending tasks (Description field)` } }
+      },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } }, max: 90 },
+        y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+
+  // ── Tenure Donut — Service Period Category column from Staff Exit
+  CH.tenurePie = new Chart(document.getElementById('ch-tenure-pie'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Tenure Bar
+  CH.tenureBar = new Chart(document.getElementById('ch-tenure-bar'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} exits` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Gauge (half-donut) — Exit Interview Completion Rate
+  CH.gauge = new Chart(document.getElementById('ch-gauge'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [0, 100],
+        backgroundColor: [P.primary, '#DDE6EF'],
+        borderWidth: 0, circumference: 180, rotation: -90,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    }
+  });
+
+  // ── Satisfaction (horizontal bar) — Exit Interview Data scores
+  CH.sat = new Chart(document.getElementById('ch-satisfaction'), {
+    type: 'bar',
+    data: {
+      labels: SATISFACTION.map(s => s.label),
+      datasets: [{
+        label: 'Score (1–5)',
+        data: SATISFACTION.map(s => s.score),
+        backgroundColor: SATISFACTION.map(s =>
+          s.score >= 4 ? P.primary : s.score >= 3.5 ? P.mid : s.score >= 3 ? P.light : P.danger
+        ),
+        borderRadius: 4, barThickness: 14
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` Score: ${Number(ctx.raw).toFixed(2)} / 5.0` } }
+      },
+      scales: {
+        x: { min: 0, max: 5, grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 }, stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Top Exit Reasons from interview free-text
+  CH.iReasons = new Chart(document.getElementById('ch-exit-reasons'), {
+    type: 'bar',
+    data: {
+      labels: INTERVIEW_REASONS.map(r => r.label),
+      datasets: [{
+        data: INTERVIEW_REASONS.map(r => r.count),
+        backgroundColor: PALETTE,
+        borderRadius: 4, barThickness: 16
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} responses` } } },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } }, max: 10 },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Ending Contract Reason donut — from Exit Interview Data (Ending Contract Reason column)
+  CH.ecr = new Chart(document.getElementById('ch-ecr'), {
+    type: 'doughnut',
+    data: {
+      labels: ECR_DATA.map(e => e.label),
+      datasets: [{
+        data: ECR_DATA.map(e => e.count),
+        backgroundColor: PALETTE,
+        borderWidth: 0, hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '58%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+}
+
+function updateGauge(pct) {
+  CH.gauge.data.datasets[0].data = [pct, 100 - pct];
+  CH.gauge.update('none');
+}
+
+function initCharts() {
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size   = 11;
+  Chart.defaults.color       = '#7B93AA';
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.boxPadding = 4;
+  Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(13,27,42,0.88)';
+  Chart.defaults.plugins.tooltip.titleFont = { family: "'Outfit', sans-serif", size: 12, weight: '700' };
+  Chart.defaults.plugins.tooltip.bodyFont  = { family: "'Inter', sans-serif", size: 11 };
+
+  // ── Trend (Monthly/Quarterly/YTD)
+  CH.trend = new Chart(document.getElementById('ch-trend'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 }, stepSize: 10 } }
+      }
+    }
+  });
+
+  // ── Voluntary vs Involuntary (donut)
+  CH.vol = new Chart(document.getElementById('ch-vol'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Voluntary (Employee)', 'Involuntary (Company)'],
+      datasets: [{ data: [0, 0], backgroundColor: [P.primary, P.light], borderWidth: 0, hoverOffset: 8 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.label}: ${ctx.raw} (${tot > 0 ? (ctx.raw/tot*100).toFixed(1) : 0}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Division (horizontal bar)
+  CH.div = new Chart(document.getElementById('ch-division'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} exits` } }
+      },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Reasons (donut)
+  CH.reasons = new Chart(document.getElementById('ch-reasons'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Clearance stages (horizontal bar)
+  CH.clearance = new Chart(document.getElementById('ch-clearance'), {
+    type: 'bar',
+    data: {
+      labels: CLEARANCE_STAGES.map(s => s.label),
+      datasets: [{
+        label: 'Pending Tasks',
+        data:  CLEARANCE_STAGES.map(s => s.count),
+        backgroundColor: CLEARANCE_STAGES.map((_, i) => i < 3 ? P.primary : i < 6 ? P.mid : P.light),
+        borderRadius: 4, barThickness: 18
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} pending tasks` } }
+      },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } }, max: 90 },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Tenure Donut
+  CH.tenurePie = new Chart(document.getElementById('ch-tenure-pie'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── Tenure Bar
+  CH.tenureBar = new Chart(document.getElementById('ch-tenure-bar'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} exits` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Gauge (half-donut)
+  CH.gauge = new Chart(document.getElementById('ch-gauge'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [0, 100],
+        backgroundColor: [P.primary, '#DDE6EF'],
+        borderWidth: 0,
+        circumference: 180,
+        rotation: -90,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    }
+  });
+
+  // ── Satisfaction (horizontal bar)
+  CH.sat = new Chart(document.getElementById('ch-satisfaction'), {
+    type: 'bar',
+    data: {
+      labels: SATISFACTION.map(s => s.label),
+      datasets: [{
+        label: 'Score (1–5)',
+        data: SATISFACTION.map(s => s.score),
+        backgroundColor: SATISFACTION.map(s => s.score >= 4 ? P.primary : s.score >= 3.5 ? P.mid : s.score >= 3 ? P.light : P.danger),
+        borderRadius: 4, barThickness: 14
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` Score: ${Number(ctx.raw).toFixed(2)} / 5.0` } }
+      },
+      scales: {
+        x: { min: 0, max: 5, grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 }, stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Exit interview top reasons (horizontal bar)
+  CH.iReasons = new Chart(document.getElementById('ch-exit-reasons'), {
+    type: 'bar',
+    data: {
+      labels: INTERVIEW_REASONS.map(r => r.label),
+      datasets: [{
+        data: INTERVIEW_REASONS.map(r => r.count),
+        backgroundColor: PALETTE,
+        borderRadius: 4, barThickness: 16
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} responses` } } },
+      scales: {
+        x: { grid: { color: '#EFF4F9' }, ticks: { font: { size: 10 } }, max: 10 },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Ending contract reason split (donut)
+  CH.ecr = new Chart(document.getElementById('ch-ecr'), {
+    type: 'doughnut',
+    data: {
+      labels: ECR_DATA.map(e => e.label),
+      datasets: [{
+        data: ECR_DATA.map(e => e.count),
+        backgroundColor: PALETTE,
+        borderWidth: 0, hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '58%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } },
+        tooltip: { callbacks: { label: ctx => {
+          const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          return ` ${ctx.raw} (${(ctx.raw/tot*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+}
+
+function updateGauge(pct) {
+  CH.gauge.data.datasets[0].data = [pct, 100 - pct];
+  CH.gauge.update('none');
+}
+
+/* =============================================================
+   CHART UPDATE FUNCTIONS
+   ─────────────────────────────────────────────────────────────
+   Each function reads from VIEW (filtered EXIT_RECORDS).
+   Clearance and Exit Interview charts use fixed section-level
+   data (D & E above) which are not filtered by exit-level dims.
+   ============================================================= */
+
+function setTrend(mode, btn) {
+  trendMode = mode;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  updateTrend(VIEW);
+}
+
+function updateTrend(d) {
+  // Only actual data — no projections. Period is Apr–Mar cycle.
+  // Current data covers Jan–Mar 2026 (months 1, 2, 3).
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Detect which months have data
+  const activeMths = [...new Set(d.map(r => r.month))].sort((a,b)=>a-b);
+
+  if (trendMode === 'monthly') {
+    const counts = months.map((_, i) => d.filter(x => x.month === i+1).length);
+    // Only show months that have actual data (count > 0)
+    const hasData = months.map((_, i) => counts[i] > 0);
+    CH.trend.data.labels   = months.filter((_, i) => hasData[i]);
+    CH.trend.data.datasets = [{
+      type: 'bar', label: 'Actual Exits',
+      data: counts.filter((_, i) => hasData[i]),
+      backgroundColor: P.primary, borderRadius: 5, barThickness: 28
+    }];
+
+  } else if (trendMode === 'quarterly') {
+    const qLabels = ['Q1 Jan–Mar', 'Q2 Apr–Jun', 'Q3 Jul–Sep', 'Q4 Oct–Dec'];
+    const qCounts = [
+      d.filter(x => x.month <= 3).length,
+      d.filter(x => x.month >= 4 && x.month <= 6).length,
+      d.filter(x => x.month >= 7 && x.month <= 9).length,
+      d.filter(x => x.month >= 10).length,
+    ];
+    // Only show quarters with data
+    const qActive = qLabels.filter((_, i) => qCounts[i] > 0);
+    const qVals   = qCounts.filter(c => c > 0);
+    CH.trend.data.labels   = qActive;
+    CH.trend.data.datasets = [{
+      type: 'bar', label: 'Exits per Quarter',
+      data: qVals,
+      backgroundColor: qActive.map((_, i) => PALETTE[i % 4]),
+      borderRadius: 8, barThickness: 44
+    }];
+
+  } else {
+    // YTD cumulative — only actual data months
+    let cum = 0;
+    const cumLabels = [], cumData = [];
+    for (let m = 1; m <= 12; m++) {
+      const cnt = d.filter(x => x.month === m).length;
+      if (cnt > 0 || cum > 0) {
+        cum += cnt;
+        if (cnt > 0) { cumLabels.push(months[m-1]); cumData.push(cum); }
+      }
+    }
+    CH.trend.data.labels   = cumLabels;
+    CH.trend.data.datasets = [{
+      type: 'line', label: 'Cumulative YTD Exits',
+      data: cumData,
+      borderColor: P.primary,
+      backgroundColor: 'rgba(3,81,138,.09)',
+      fill: true, tension: 0.4,
+      pointBackgroundColor: P.primary,
+      pointRadius: 4, pointHoverRadius: 6
+    }];
+  }
+
+  CH.trend.update();
+}
+
+function updateVol(d) {
+  // Voluntary = leavingBy === "Employee"; Involuntary = leavingBy === "IMC"
+  const vol   = d.filter(x => x.leavingBy === 'Employee').length;
+  const invol = d.filter(x => x.leavingBy === 'IMC').length;
+  CH.vol.data.datasets[0].data = [vol, invol];
+  CH.vol.update();
+}
+
+function updateDiv(d) {
+  // Exit by Division column from Staff Exit
+  const counts = {};
+  d.forEach(x => { if (x.division) counts[x.division] = (counts[x.division] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  CH.div.data.labels   = sorted.map(e => e[0]);
+  CH.div.data.datasets = [{
+    label: 'Exits', data: sorted.map(e => e[1]),
+    backgroundColor: sorted.map((_, i) => PALETTE[i % PALETTE.length]),
+    borderRadius: 4, barThickness: 16
+  }];
+  CH.div.update();
+}
+
+function updateReasons(d) {
+  // Reason for Leaving = Leaving Reason column from Staff Exit (mapped to readable labels)
+  const counts = {};
+  d.forEach(x => {
+    const lbl = REASON_LBL[x.leavingReason] || x.leavingReason;
+    if (lbl) counts[lbl] = (counts[lbl] || 0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  CH.reasons.data.labels   = sorted.map(e => e[0]);
+  CH.reasons.data.datasets = [{
+    data: sorted.map(e => e[1]),
+    backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 8
+  }];
+  CH.reasons.update();
+}
+
+function updateTenure(d) {
+  // Tenure at Exit = Service Period Category column from Staff Exit
+  const ORDER = ['0-3 Years','3-5 Years','5-8 Years','8-10 Years','10-15 Years','15-20 Years','>20 Years'];
+  const counts = {};
+  d.forEach(x => { if (x.servicePeriod) counts[x.servicePeriod] = (counts[x.servicePeriod] || 0) + 1; });
+  const labels = ORDER.filter(t => counts[t]);
+  const vals   = labels.map(t => counts[t]);
+
+  // Map to display-friendly labels for the donut
+  const DISP = {
+    '0-3 Years': '< 3 Years', '3-5 Years': '3–5 Years',
+    '5-8 Years': '5–8 Years', '8-10 Years': '8–10 Years',
+    '10-15 Years': '10–15 Yrs','15-20 Years': '15–20 Yrs',
+    '>20 Years': '20+ Years'
+  };
+  const dispLabels = labels.map(l => DISP[l] || l);
+
+  CH.tenurePie.data.labels   = dispLabels;
+  CH.tenurePie.data.datasets = [{ data: vals, backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }];
+  CH.tenurePie.update();
+
+  CH.tenureBar.data.labels   = dispLabels;
+  CH.tenureBar.data.datasets = [{
+    label: 'Exits', data: vals,
+    backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]),
+    borderRadius: 4
+  }];
+  CH.tenureBar.update();
+}
+
+function renderNoticeBars(d) {
+  // Notice period distribution computed from actual Notice Period From Employee column values
+  const total = d.length;
+  const buckets = {'15 Days': 0, '30 Days': 0, '60 Days': 0, '90 Days': 0};
+  d.forEach(x => {
+    const np = x.noticePeriod;
+    if (np === 15)       buckets['15 Days']++;
+    else if (np === 30)  buckets['30 Days']++;
+    else if (np === 60)  buckets['60 Days']++;
+    else if (np === 90)  buckets['90 Days']++;
+  });
+  const container = document.getElementById('notice-bars');
+  if (!container) return;
+  container.innerHTML = Object.entries(buckets).map(([days, count]) => {
+    const pct = total > 0 ? Math.round(count / total * 100) : 0;
+    return `
+      <div class="prog-item">
+        <div class="prog-head">
+          <span class="prog-name">${days}</span>
+          <span class="prog-count">${count} employees (${pct}%)</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderClearanceOwn() {
+  // Clearance ownership from Description column of Clearance_in_Proress__Department.xlsx
+  const total = CLEARANCE_OWN.reduce((s, x) => s + x.count, 0);
+  const container = document.getElementById('clearance-own');
+  if (!container) return;
+  const colors = [P.primary, P.mid, P.light, P.pale, P.purple, P.success, P.warning, P.danger, P.gray];
+  container.innerHTML = CLEARANCE_OWN.map((o, i) => {
+    const pct = Math.round(o.count / total * 100);
+    return `
+      <div class="prog-item">
+        <div class="prog-head">
+          <span class="prog-name">${o.label}</span>
+          <span class="prog-count">${o.count} tasks</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" style="width:${pct}%;background:${colors[i % colors.length]}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderOffboardingStatus() {
+  // Offboarding Status from Workflow Status column of Resignations Report
+  set('ns-done', EXIT_RECORDS.length.toLocaleString());
+}
+
+/* =============================================================
+   MASTER UPDATE FUNCTION
+   ============================================================= */
+function updateAll() {
+  updateKPIs(VIEW);
+  updateTrend(VIEW);
+  updateVol(VIEW);
+  updateDiv(VIEW);
+  updateReasons(VIEW);
+  updateTenure(VIEW);
+  renderNoticeBars(VIEW);
+  renderClearanceOwn();
+  renderOffboardingStatus();
+}
+
+/* =============================================================
+   INIT
+   ============================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  populateDropdowns();
+  initCharts();
+  updateAll();
+});
+</script>
+</body>
+</html>
