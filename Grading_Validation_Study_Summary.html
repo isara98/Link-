@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WTW Job Grading Validation — Study Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #0f1923;
+    --ink-light:  #3c4a57;
+    --ink-faint:  #8a97a4;
+    --paper:      #f7f5f0;
+    --card:       #ffffff;
+    --rule:       #e4e0d8;
+    --green:      #1a7340;
+    --green-bg:   #edf7f1;
+    --red:        #b81c1c;
+    --red-bg:     #fdf0f0;
+    --amber:      #975f00;
+    --amber-bg:   #fef8ec;
+    --orange:     #c45100;
+    --orange-bg:  #fff3eb;
+    --blue:       #1a4f8a;
+    --blue-bg:    #eef3fa;
+    --accent:     #1a4f8a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 56px 60px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: 160px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    max-width: 680px;
+    margin-bottom: 20px;
+  }
+  header h1 span {
+    color: rgba(255,255,255,0.55);
+    font-weight: 600;
+  }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .meta-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    font-family: 'DM Mono', monospace;
+  }
+  .meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ── Main ── */
+  main {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 56px 40px 80px;
+  }
+
+  /* ── Section ── */
+  section { margin-bottom: 52px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    padding-top: 2px;
+    white-space: nowrap;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  /* ── Prose ── */
+  .prose {
+    color: var(--ink-light);
+    font-weight: 300;
+    max-width: 780px;
+  }
+  .prose p { margin-bottom: 14px; }
+  .prose p:last-child { margin-bottom: 0; }
+  strong { font-weight: 500; color: var(--ink); }
+
+  /* ── Summary Cards ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .summary-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 24px 24px 20px;
+    border: 1px solid var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 10px 10px 0 0;
+  }
+  .summary-card.green::before  { background: var(--green); }
+  .summary-card.red::before    { background: var(--red); }
+  .summary-card.amber::before  { background: var(--amber); }
+  .summary-card.orange::before { background: var(--orange); }
+  .summary-card.total::before  { background: var(--blue); }
+
+  .card-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .summary-card.green  .card-num { color: var(--green); }
+  .summary-card.red    .card-num { color: var(--red); }
+  .summary-card.amber  .card-num { color: var(--amber); }
+  .summary-card.orange .card-num { color: var(--orange); }
+  .summary-card.total  .card-num { color: var(--blue); }
+
+  .card-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .card-sub {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Sheet Breakdown ── */
+  .sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    margin-bottom: 24px;
+  }
+  .sheet-table th {
+    background: var(--ink);
+    color: rgba(255,255,255,0.8);
+    padding: 11px 18px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    font-weight: 400;
+  }
+  .sheet-table td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+  }
+  .sheet-table tr:last-child td { border-bottom: none; }
+  .sheet-table tr:hover td { background: #fafaf8; }
+  .sheet-name { font-weight: 500; color: var(--ink); }
+  .num-green  { color: var(--green);  font-weight: 500; font-family: 'DM Mono', monospace; }
+  .num-red    { color: var(--red);    font-weight: 500; font-family: 'DM Mono', monospace; }
+  .num-amber  { color: var(--amber);  font-weight: 500; font-family: 'DM Mono', monospace; }
+  .num-orange { color: var(--orange); font-weight: 500; font-family: 'DM Mono', monospace; }
+  .num-total  { color: var(--ink);    font-weight: 600; font-family: 'DM Mono', monospace; }
+  tfoot td { background: #f7f5f0; font-weight: 600; border-top: 2px solid var(--rule); }
+
+  /* ── Bar Chart ── */
+  .bar-chart { margin: 28px 0 36px; display: flex; flex-direction: column; gap: 12px; }
+  .bar-row { display: flex; align-items: center; gap: 14px; }
+  .bar-label { width: 80px; font-size: 12px; color: var(--ink-light); text-align: right; flex-shrink: 0; font-weight: 400; }
+  .bar-track { flex: 1; background: var(--rule); border-radius: 4px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-fill.green  { background: var(--green); }
+  .bar-fill.red    { background: var(--red); }
+  .bar-fill.amber  { background: #d4910a; }
+  .bar-fill.orange { background: var(--orange); }
+  .bar-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink-light); width: 34px; text-align: right; }
+  .bar-pct { font-size: 11px; color: var(--ink-faint); width: 40px; }
+
+  /* ── Issue List ── */
+  .issue-group { margin-bottom: 28px; }
+  .issue-group-title {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .issue-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .issue-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .issue-dot.red   { background: var(--red); }
+  .issue-dot.amber { background: #d4910a; }
+  .issue-content { flex: 1; }
+  .issue-pos {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .issue-meta {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-faint);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+  }
+  .badge.red    { background: var(--red-bg);   color: var(--red); }
+  .badge.amber  { background: var(--amber-bg); color: var(--amber); }
+  .badge.sheet  { background: var(--blue-bg);  color: var(--blue); }
+
+  /* ── Observations ── */
+  .obs-list { display: flex; flex-direction: column; gap: 14px; }
+  .obs-item {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 20px 18px 56px;
+    position: relative;
+    color: var(--ink-light);
+    font-size: 14px;
+    font-weight: 300;
+  }
+  .obs-item::before {
+    content: attr(data-n);
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    background: var(--paper);
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 24px;
+  }
+  .obs-item strong { color: var(--ink); }
+
+  /* ── Conclusion Box ── */
+  .conclusion-box {
+    background: var(--ink);
+    color: rgba(255,255,255,0.85);
+    border-radius: 12px;
+    padding: 36px 40px;
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.7;
+    position: relative;
+    overflow: hidden;
+  }
+  .conclusion-box::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; right: -30px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .conclusion-box p { margin-bottom: 14px; }
+  .conclusion-box p:last-child { margin-bottom: 0; }
+  .conclusion-box strong { color: #fff; font-weight: 500; }
+
+  /* ── Methodology ── */
+  .method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .method-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .method-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .method-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .method-desc {
+    font-size: 13px;
+    color: var(--ink-light);
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  /* ── Color Legend ── */
+  .legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-light);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--rule);
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 36px 24px 32px; }
+    main { padding: 36px 20px 60px; }
+    .header-meta { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ HEADER ═══════════════════════ -->
+<header>
+  <div class="header-label">Confidential — Internal Study Report</div>
+  <h1>WTW Job Grading Validation<br><span>Grading Map Review — February 2026</span></h1>
+  <div class="header-meta">
+    <div class="meta-item">
+      <span class="meta-label">Study Date</span>
+      <span class="meta-value">April 2026</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Framework</span>
+      <span class="meta-value">Willis Towers Watson (WTW) Global Grading</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Source File</span>
+      <span class="meta-value">Grading_Map_01Feb26_By_Dept.xlsx</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Sheets Reviewed</span>
+      <span class="meta-value">Admin · Allied · Physician · Nursing</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ 01. OVERVIEW ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Study Overview</h2>
+    </div>
+    <div class="prose">
+      <p>This study conducted a systematic, cell-by-cell validation of the organization's internal Grading Map against two authoritative reference documents provided by Willis Towers Watson (WTW): the <strong>Career Map Structure</strong> and the <strong>Global Grading for All Jobs</strong> PDF. The objective was to determine which positions are correctly graded, which are misaligned, and which fall outside the defined WTW framework entirely.</p>
+      <p>The validation covered all four area sheets — <strong>Admin, Allied Health, Physician, and Nursing</strong> — examining a total of <strong>380 position cells</strong>. Cells pre-marked in orange by the organization were treated as excluded from validation (denoting positions under review or pending classification). Only black-text positions were subject to assessment.</p>
+    </div>
+  </section>
+
+  <!-- ═══ 02. METHODOLOGY ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Methodology</h2>
+    </div>
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="method-icon">📄</div>
+        <div class="method-title">Reference Documents</div>
+        <div class="method-desc">Validation rules were derived exclusively from the WTW Career Map Structure PDF and the Global Grading for All Jobs PDF. No external HR knowledge was applied.</div>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">🔍</div>
+        <div class="method-title">Two-Stage Check</div>
+        <div class="method-desc">Each position was validated on two dimensions: (1) structural alignment of the row's Career Level against its assigned Global Grade, and (2) the position title's expected grade range per the WTW Grade table.</div>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">🟠</div>
+        <div class="method-title">Orange Exclusion Protocol</div>
+        <div class="method-desc">Orange-colored cells were identified via raw Excel XML style analysis, capturing all three encoding types: explicit RGB, theme-referenced, and style-inherited. All 272 orange position cells were completely excluded from assessment.</div>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">🎨</div>
+        <div class="method-title">Color-Coded Output</div>
+        <div class="method-desc">Results were applied as font color changes only — no cell backgrounds or structure were altered. Green = valid, Red = misaligned, Yellow = not defined in framework.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 03. MAIN FINDINGS ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Main Findings</h2>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card total">
+        <div class="card-num">380</div>
+        <div class="card-label">Total Position Cells</div>
+        <div class="card-sub">Across all 4 sheets</div>
+      </div>
+      <div class="summary-card green">
+        <div class="card-num">205</div>
+        <div class="card-label">Valid (Green)</div>
+        <div class="card-sub">77.4% of validated cells</div>
+      </div>
+      <div class="summary-card red">
+        <div class="card-num">19</div>
+        <div class="card-label">Invalid (Red)</div>
+        <div class="card-sub">Grade misalignment</div>
+      </div>
+      <div class="summary-card amber">
+        <div class="card-num">41</div>
+        <div class="card-label">Not Defined (Yellow)</div>
+        <div class="card-sub">Outside WTW framework</div>
+      </div>
+      <div class="summary-card orange">
+        <div class="card-num">115</div>
+        <div class="card-label">Excluded (Orange)</div>
+        <div class="card-sub">Pre-marked, not validated</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Green — Position title and grade correctly aligned per WTW framework</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Red — Grade or career level does not match WTW definition</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d4910a"></div>Yellow — Job title not classifiable within the WTW Grade table</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Orange — Pre-marked exclusions; not validated</div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="bar-chart">
+      <div class="bar-row">
+        <span class="bar-label">Valid</span>
+        <div class="bar-track"><div class="bar-fill green" style="width:77.4%"></div></div>
+        <span class="bar-count">205</span>
+        <span class="bar-pct">77.4%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Not Defined</span>
+        <div class="bar-track"><div class="bar-fill amber" style="width:15.5%"></div></div>
+        <span class="bar-count">41</span>
+        <span class="bar-pct">15.5%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Invalid</span>
+        <div class="bar-track"><div class="bar-fill red" style="width:7.2%"></div></div>
+        <span class="bar-count">19</span>
+        <span class="bar-pct">7.2%</span>
+      </div>
+    </div>
+
+    <!-- Sheet Breakdown Table -->
+    <table class="sheet-table">
+      <thead>
+        <tr>
+          <th>Sheet</th>
+          <th>🟢 Valid</th>
+          <th>🔴 Invalid</th>
+          <th>🟡 Not Defined</th>
+          <th>🟠 Excluded</th>
+          <th>Total Validated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="sheet-name">Admin</td>
+          <td class="num-green">76</td>
+          <td class="num-red">13</td>
+          <td class="num-amber">35</td>
+          <td class="num-orange">74</td>
+          <td class="num-total">124</td>
+        </tr>
+        <tr>
+          <td class="sheet-name">Allied Health</td>
+          <td class="num-green">32</td>
+          <td class="num-red">5</td>
+          <td class="num-amber">5</td>
+          <td class="num-orange">13</td>
+          <td class="num-total">42</td>
+        </tr>
+        <tr>
+          <td class="sheet-name">Physician</td>
+          <td class="num-green">80</td>
+          <td class="num-red">0</td>
+          <td class="num-amber">1</td>
+          <td class="num-orange">20</td>
+          <td class="num-total">81</td>
+        </tr>
+        <tr>
+          <td class="sheet-name">Nursing</td>
+          <td class="num-green">17</td>
+          <td class="num-red">1</td>
+          <td class="num-amber">0</td>
+          <td class="num-orange">8</td>
+          <td class="num-total">18</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td class="num-green"><strong>205</strong></td>
+          <td class="num-red"><strong>19</strong></td>
+          <td class="num-amber"><strong>41</strong></td>
+          <td class="num-orange"><strong>115</strong></td>
+          <td class="num-total"><strong>265</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <!-- ═══ 04. KEY OBSERVATIONS ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Key Observations</h2>
+    </div>
+    <div class="obs-list">
+      <div class="obs-item" data-n="1">
+        <strong>Physician sheet is the best-performing area</strong> — with 80 valid positions, zero invalid, and only one not-defined cell, the Physician sheet demonstrates near-complete alignment with the WTW framework. This reflects strong application of the P1–P6 career ladder (Registrar through Senior Consultant) and correct use of the M3/M4 managerial band for Chairman and Deputy Chairman roles.
+      </div>
+      <div class="obs-item" data-n="2">
+        <strong>Admin sheet carries the highest volume of issues</strong> — 13 invalid and 35 not-defined cells, primarily concentrated in the Support band (U1–U2, Grades 4–6) and the Admin C-band (Grades 8–11). The large number of not-defined positions reflects org-specific titles (e.g. "Quality Senior Specialist", "HCM Specialist", "Billing Controller") that do not appear by name in the WTW Grade table.
+      </div>
+      <div class="obs-item" data-n="3">
+        <strong>Grade boundary violations are the dominant error type in red cells</strong> — the most common pattern is a position placed in a row whose grade does not match the expected range for that job title. For example, Office Manager roles placed at Grade 10 (M1 row) when the WTW table defines "Manager" at Grades 12–13 (M2), and Supervisor-level titles placed at Grade 11 (M1) when WTW expects Grades 10–11.
+      </div>
+      <div class="obs-item" data-n="4">
+        <strong>Allied Health sheet shows pharmacist and technologist classification issues</strong> — several positions in the T3 band row (Grade 8) include Radiographer, Dental Hygienist, and Technologist variants which the WTW framework places at T2 (Grade 7) or T1 (Grade 6). This suggests a systematic upward shift in some Allied Health classifications.
+      </div>
+      <div class="obs-item" data-n="5">
+        <strong>Nursing sheet is nearly fully aligned</strong> — only one red cell was identified (Supervisor, Diabetic Educator and Clinical Lead, Endoscopy placed at Grade 12, whereas Supervisor roles are defined at M1, Grades 10–11). All other Nursing positions correctly follow the N1–N5 career ladder.
+      </div>
+      <div class="obs-item" data-n="6">
+        <strong>Orange exclusions are heavily concentrated in Admin</strong> — 74 of the 115 excluded orange cells reside in the Admin sheet, suggesting a significant portion of administrative positions are still under review or pending formal classification by the organization.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 05. ISSUES IDENTIFIED ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Issues Identified</h2>
+    </div>
+
+    <!-- Red Issues -->
+    <div class="issue-group">
+      <div class="issue-group-title">🔴 Grade Misalignment Issues (Red) — Selected Examples</div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Chief Executive Officer</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span><span class="badge red">Grade 19 / Level EX</span> WTW defines Chief at Grades 17–18. Grade 19 exceeds the defined ceiling for the EX band in the Grade table, though the Career Map separately designates Grade 19 as the CEO level.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Office Manager, CFO / CMO / COO Office</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span><span class="badge red">Grade 10 / Level M1</span> "Manager" titles are defined at M2 (Grades 12–13) in the WTW table. Placement at Grade 10 (M1) represents a two-grade downward misalignment.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Deputy Head of Clinical Engineering · Facility Manager · Safety Manager · Security Manager</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span><span class="badge red">Grade 12 / Level M2</span> Deputy Head/Director-level titles are defined at M3 (Grades 14–15). Placement at M2/Grade 12 is two grades below the expected range.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Section Head, BMS & FAS · Clinical Engineering Administrative Supervisor</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span><span class="badge red">Grade 11 / Level M1</span> Section Head is defined at M3 (Grades 14–15); placed at M1/Grade 11. Clinical Engineering Supervisor placed in Grade 11 vs. expected G9 (C2 band).</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Radiographer · Electrophysiology Technologist · Dental Hygienist · Clinical Dietitian (Allied)</div>
+          <div class="issue-meta"><span class="badge sheet">Allied Health</span><span class="badge red">Grade 8 / Level T3</span> These roles are classified as T2 (Grade 7) or T1 (Grade 6) technician-level positions in the WTW framework, but placed at T3/Grade 8 in the grading map.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot red"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Supervisor, Diabetic Educator · Clinical Lead, Endoscopy</div>
+          <div class="issue-meta"><span class="badge sheet">Nursing</span><span class="badge red">Grade 12 / Level M2</span> Supervisor-level positions are defined at M1 (Grades 10–11). Placement in the M2/Grade 12 row overstates the grade by one to two levels.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yellow Issues -->
+    <div class="issue-group">
+      <div class="issue-group-title">🟡 Not Defined in WTW Framework (Yellow) — Selected Examples</div>
+
+      <div class="issue-card">
+        <div class="issue-dot amber"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Quality Senior Specialist · Performance Improvement Senior Specialist</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span> Org-specific position titles combining function and seniority. The WTW table lists "Senior Specialist" generically but not these function-prefixed variants.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot amber"></div>
+        <div class="issue-content">
+          <div class="issue-pos">HCM Specialist · Government Relations Specialist · HCM Specialist/Compliance</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span> Function-specific specialist titles that appear in the Grading Map but are not present as named entries in the WTW Global Grading PDF.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot amber"></div>
+        <div class="issue-content">
+          <div class="issue-pos">WELLCARE-Hajj & Umrah Program Manager · Housekeeping Supervisor · Safety Supervisor WELLCARE</div>
+          <div class="issue-meta"><span class="badge sheet">Admin</span> Organization-branded or operationally specific titles not covered by the generic WTW framework. These likely require a formal job evaluation to be mapped to a WTW grade.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot amber"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Senior Architect · MRI Technician · CT Scan Technician · Donor Room Technician</div>
+          <div class="issue-meta"><span class="badge sheet">Admin / Allied</span> Variants of WTW-defined titles (Architect, Technician) that include additional qualifiers. The base title exists in the framework; the modified variant does not appear explicitly.</div>
+        </div>
+      </div>
+
+      <div class="issue-card">
+        <div class="issue-dot amber"></div>
+        <div class="issue-content">
+          <div class="issue-pos">Lab Services Representative · Physical Therapy Technician · Emergency Medical Technician</div>
+          <div class="issue-meta"><span class="badge sheet">Allied Health</span> Allied-specific operational titles not present in the WTW Allied Health grade definitions. These require formal classification under the T1–T4 band structure.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 06. OVERALL CONCLUSION ═══ -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Overall Conclusion</h2>
+    </div>
+    <div class="conclusion-box">
+      <p>The grading map demonstrates <strong>strong overall alignment</strong> with the WTW framework, with <strong>77.4% of validated positions correctly graded</strong>. The Physician and Nursing sheets in particular show a high degree of framework adherence, reflecting disciplined application of the clinical career ladder.</p>
+      <p>The primary areas requiring attention are the <strong>Admin sheet's Support and C-band rows</strong>, where a combination of grade-boundary violations and org-specific titles that fall outside the WTW framework create both confirmed misalignments and classification gaps. The Allied Health sheet also shows a pattern of pharmacist and technologist roles placed one band higher than the WTW framework defines.</p>
+      <p>The <strong>41 not-defined positions</strong> (yellow) do not necessarily represent errors — many are legitimate org-specific roles that simply have not been formally evaluated against the WTW methodology. These require a structured job evaluation exercise to assign them to the correct band and grade. The <strong>19 invalid positions</strong> (red) represent confirmed grade misalignments that should be reviewed and corrected with the relevant department heads.</p>
+      <p>It is recommended that the organization prioritize a review of the Admin sheet's M1/M2 boundary (Grades 10–13), conduct formal WTW evaluations for the 41 not-defined positions, and revisit the Allied Health T2/T3 classification for technician-level roles before the next salary review cycle.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  WTW Job Grading Validation Study &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; Internal Use Only &nbsp;·&nbsp; Willis Towers Watson Framework
+</footer>
+
+</body>
+</html>
